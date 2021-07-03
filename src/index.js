@@ -15,11 +15,11 @@ refs.searchForm.addEventListener('change', onSearch);
 function onSearch(e) {
     e.preventDefault();
     
-    const form = e.currentTarget;
+    let form = e.target.value;
     console.log(form.elements)
-    const searchQuery = form.elements.query.value;
+    // const searchQuery = form.elements.query.value;
 
-    fetchCountries(searchQuery)
+    fetchCountries(form)
         .then(renderCountriesCard)
         .catch(error => console.log(error));
 }
