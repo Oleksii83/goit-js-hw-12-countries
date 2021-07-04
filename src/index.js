@@ -1,39 +1,59 @@
 import './sass/main.scss';
-import countries_data from '../src/partials/countries.hbs'
-import { func } from 'assert-plus';
-import { functionDeclaration } from 'babel-types';
+import countries_data from '../src/partials/countries.hbs';
+import countries_list from '../src/partials/countriesList.hbs';
+import API from '../src/js/fetchCountries';
+import '@pnotify/core/dist/BrightTheme.css';
+const { error } = require('@pnotify/core');
+
+const debounce = require('lodash.debounce');
 
 const refs = {
-    cardContainer: document.querySelector('.js-markup'),
-    searchForm: document.querySelector('.js-search-form')
-}
+  cardContainer: document.querySelector('.js-markup'),
+  searchForm: document.querySelector('.js-search-form'),
+};
 
-refs.searchForm.addEventListener('change', onSearch);
- console.log("🚀 ~ file: index.js ~ line 12 ~ refs.searchForm", refs.searchForm.elements)
-
+refs.searchForm.addEventListener('input', debounce(onSearch, 500));
 
 function onSearch(e) {
-    e.preventDefault();
-    
-    let form = e.target.value;
-    console.log(form.elements)
-    // const searchQuery = form.elements.query.value;
+  e.preventDefault();
 
-    fetchCountries(form)
-        .then(renderCountriesCard)
-        .catch(error => console.log(error));
-}
+  let form = e.target.value;
 
-function fetchCountries(countriesName) {
-    return fetch(`https://restcountries.eu/rest/v2/name/${countriesName}`)
-        .then(response => {
-            return response.json();
+  API.fetchCountries(form)
+    .then(data => {
+      if (data.length === 1) {
+        renderCountriesCard(data);
+      }
+      return data;
+    })
+    .then(data => {
+      if (data.length > 1 && data.length < 10) {
+        renderCountriesList(data);
+      }
+      return data;
+    })
+    .then(data => {
+      if (data.length >= 10) {
+        error({
+          text: 'Too many matches found. Please enter a more specific query!',
         });
-
+      }
+      return data;
+    })
+    .cath(data => {
+      if (data.status === 404) {
+        error({ text: 'No matches found' });
+      }
+      return;
+    });
 }
 
 function renderCountriesCard(countries) {
-    const markup = countries_data(countries)
-    refs.cardContainer.innerHTML = markup
-    
+  const markup = countries_data(countries);
+  refs.cardContainer.innerHTML = markup;
+}
+
+function renderCountriesList(array) {
+  const markupList = countries_list(array);
+  refs.cardContainer.innerHTML = markupList;
 }
