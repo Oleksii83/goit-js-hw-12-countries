@@ -40,7 +40,7 @@ function onSearch(e) {
       }
       return data;
     })
-    .cath(data => {
+    .then(data => {
       if (data.status === 404) {
         error({ text: 'No matches found' });
       }
